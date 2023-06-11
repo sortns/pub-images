@@ -5,7 +5,7 @@ on:
 
 jobs:
   dockerhub:
-    uses: sortns/pub-images/.github/shared/push-image.yml@master
+    uses: sortns/pub-images/.github/workflows/push-image.yml@master
     with:
       DOCKER_IMAGE_NAME: "matplotlib"
       DOCKER_IMAGE_TAG: "release"
