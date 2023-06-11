@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Build the Docker image for bot App
-        run: docker build -f ${{ inputs.DOCKER_IMAGE_PATH }} --tag ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_TAG }} .
+        run: docker build -f ${{ inputs.DOCKER_IMAGE_PATH }} --tag ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_TAG }} --tag ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_VERSION }} .
 
       - name: Push the image w/ image tag
         run: docker push ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_TAG }}
