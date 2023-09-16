@@ -4,9 +4,14 @@ FROM ubuntu:latest
 
 LABEL maintainer="sortns@gmail.com"
 
-RUN apt install openvpn easy-rsa && \
+RUN apt update -y && \
+    apt install -y openvpn easy-rsa && \
     ln -s /usr/share/easy-rsa/easyrsa /usr/local/bin && \
-    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
+    apt-get clean autoclean && \
+    apt-get autoremove --yes && \
+    rm -rf /var/lib/{apt,dpkg,cache,log}/
+    # rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
+
 
 # Needed by scripts
 ENV OPENVPN=/etc/openvpn
@@ -21,8 +26,10 @@ EXPOSE 1194/udp
 
 CMD ["ovpn_run"]
 
-ADD ./bin /usr/local/bin
+
+ADD ./images/openvpn/bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
 
 # # Add support for OTP authentication using a PAM module
-# ADD ./otp/openvpn /etc/pam.d/
+# ADD ./images/openvpn/otp/openvpn /etc/pam.d/
+

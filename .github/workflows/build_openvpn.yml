@@ -1,4 +1,5 @@
-name: build matplotlib
+name: build openvpn
+
 
 on:
   workflow_dispatch:
@@ -9,7 +10,7 @@ jobs:
     with:
       DOCKER_IMAGE_NAME: "openvpn"
       DOCKER_IMAGE_TAG: "release"
-      DOCKER_IMAGE_VERSION: "0.0.1"
+      DOCKER_IMAGE_VERSION: "0.0.2"
       DOCKER_IMAGE_PATH: "./images/openvpn/Dockerfile"
     secrets:
       DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
