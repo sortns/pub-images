@@ -12,6 +12,7 @@ RUN apt update -y && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/
     # rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
 
+
 # Needed by scripts
 ENV OPENVPN=/etc/openvpn
 ENV EASYRSA=/usr/share/easy-rsa \
@@ -25,8 +26,10 @@ EXPOSE 1194/udp
 
 CMD ["ovpn_run"]
 
+
 ADD ./images/openvpn/bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
 
 # # Add support for OTP authentication using a PAM module
 # ADD ./images/openvpn/otp/openvpn /etc/pam.d/
+
