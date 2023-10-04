@@ -1,0 +1,16 @@
+name: build bld_deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dockerhub:
+    uses: sortns/pub-images/.github/workflows/push-image.yml@master
+    with:
+      DOCKER_IMAGE_NAME: "bld_deploy"
+      DOCKER_IMAGE_TAG: "release"
+      DOCKER_IMAGE_VERSION: "0.0.2"
+      DOCKER_IMAGE_PATH: "./images/bld_deploy/Dockerfile"
+    secrets:
+      DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
