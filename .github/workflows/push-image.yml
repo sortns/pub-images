@@ -5,7 +5,7 @@ on:
     inputs:
       GITHUB_AGENT:
         type: string
-        required: true
+        required: false
         default: "self-hosted"
       DOCKER_IMAGE_NAME: 
         type: string
