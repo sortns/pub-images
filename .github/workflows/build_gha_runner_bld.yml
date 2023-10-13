@@ -1,4 +1,4 @@
-name: build bld_deploy
+name: build gha_runner_bld
 
 on:
   workflow_dispatch:
@@ -7,10 +7,10 @@ jobs:
   dockerhub:
     uses: sortns/pub-images/.github/workflows/push-image.yml@master
     with:
-      DOCKER_IMAGE_NAME: "bld_deploy"
+      DOCKER_IMAGE_NAME: "gha_runner_bld"
       DOCKER_IMAGE_TAG: "release"
-      DOCKER_IMAGE_VERSION: "0.0.2"
-      DOCKER_IMAGE_PATH: "./images/bld_deploy/Dockerfile"
+      DOCKER_IMAGE_VERSION: "0.0.1"
+      DOCKER_IMAGE_PATH: "./images/gha_runner_bld/Dockerfile"
     secrets:
       DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
       DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}

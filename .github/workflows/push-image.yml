@@ -3,10 +3,6 @@ name: Push image to dockerhub
 on: 
   workflow_call:
     inputs:
-      GITHUB_AGENT:
-        type: string
-        required: false
-        default: "ubuntu-latest"
       DOCKER_IMAGE_NAME: 
         type: string
         required: true
@@ -32,7 +28,7 @@ on:
 
 jobs:
   docker-build-push:
-    runs-on: ${{ inputs.GITHUB_AGENT }}
+    runs-on: ubuntu-latest
     outputs:
       output1: ${{ steps.final_step.outputs.out_result }}
     steps:
@@ -47,8 +43,11 @@ jobs:
       - name: Build the Docker image for bot App
         run: docker build -f ${{ inputs.DOCKER_IMAGE_PATH }} --tag ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_TAG }} --tag ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_VERSION }} .
 
-      - name: Push the image w/ tags
-        run: docker push -a ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}
+      - name: Push the image w/ image tag
+        run: docker push ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_TAG }}
+
+      - name: Push the image w/ version tag
+        run: docker push ${{ secrets.DOCKER_HUB_USER }}/${{ inputs.DOCKER_IMAGE_NAME }}:${{ inputs.DOCKER_IMAGE_VERSION }}
 
       - id: final_step
         if: success()
