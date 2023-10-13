@@ -18,6 +18,7 @@ RUN apt update -y && apt install -y wget lsb-release ca-certificates gnupg softw
         https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
         tee /etc/apt/sources.list.d/hashicorp.list 
     
+
 RUN apt update -y && apt install -y \
         terraform=${TERRAFORM_VERSION} \
         vault=${VAULT_VERSION} \
@@ -39,6 +40,7 @@ RUN ansible-galaxy collection install ansible.windows && \
 	ansible-galaxy collection install community.hashi_vault:==5.0.0 && \
 	rm -rf /var/lib/apt/lists/* && \
 	rm -rf /root/.cache/pip
+
 
 
 WORKDIR /home
