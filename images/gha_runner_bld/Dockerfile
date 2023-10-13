@@ -10,6 +10,7 @@ LABEL TERRAFORM_VERSION=${TERRAFORM_VERSION}
 LABEL ANSIBLE_VERSION="2.15.4"
 
 
+
 RUN sudo apt update -y && sudo apt install -y wget lsb-release ca-certificates gnupg software-properties-common && \
     sudo wget -O- https://apt.releases.hashicorp.com/gpg | \
         gpg --dearmor | \
@@ -27,11 +28,12 @@ RUN sudo apt update -y && sudo apt install -y \
 		openssh-client \
 		sshpass \
 		unzip &&\
-	sudo apt clean autoclean && \
+  	sudo apt clean autoclean && \
     sudo apt autoremove --yes && \
     sudo rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 RUN sudo pip install ansible==${ANSIBLE_PIP_VERSION}
+
 
 RUN ansible-galaxy collection install ansible.windows && \
     ansible-galaxy collection install amazon.aws && \
