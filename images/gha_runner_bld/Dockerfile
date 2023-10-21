@@ -18,7 +18,6 @@ RUN wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VER
     && wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && sudo unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin/ 
 
-
 RUN sudo apt update -y && sudo apt install -y \
         python3-pip \
 		git \
@@ -40,7 +39,7 @@ RUN ansible-galaxy collection install ansible.windows && \
 	sudo rm -rf /var/lib/apt/lists/* && \
 	sudo rm -rf /root/.cache/pip
 
-
+ADD ./images/gha_runner_bld/.terraformrc /home/runner/
 
 WORKDIR /home/runner/
 

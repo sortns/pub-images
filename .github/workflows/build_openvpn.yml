@@ -9,7 +9,7 @@ jobs:
     uses: sortns/pub-images/.github/workflows/push-image.yml@master
     with:
       DOCKER_IMAGE_NAME: "openvpn"
-      DOCKER_IMAGE_TAG: "release"
+      DOCKER_IMAGE_TAG: "latest"
       DOCKER_IMAGE_VERSION: "0.0.2"
       DOCKER_IMAGE_PATH: "./images/openvpn/Dockerfile"
     secrets:
