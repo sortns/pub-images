@@ -9,7 +9,7 @@ jobs:
     with:
       DOCKER_IMAGE_NAME: "fluentd"
       DOCKER_IMAGE_TAG: "latest"
-      DOCKER_IMAGE_VERSION: "0.0.2"
+      DOCKER_IMAGE_VERSION: "0.0.3"
       DOCKER_IMAGE_PATH: "./images/fluentd/Dockerfile"
     secrets:
       DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
