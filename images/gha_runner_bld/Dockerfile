@@ -40,6 +40,9 @@ RUN ansible-galaxy collection install ansible.windows && \
 	sudo rm -rf /root/.cache/pip
 
 ADD ./images/gha_runner_bld/.terraformrc /home/runner/
+ADD ./images/gha_runner_bld/pki-ca.crt /usr/local/share/ca-certificates/
+
+RUN sudo update-ca-certificates
 
 WORKDIR /home/runner/
 
