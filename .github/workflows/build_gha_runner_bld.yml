@@ -9,7 +9,7 @@ jobs:
     with:
       DOCKER_IMAGE_NAME: "gha_runner_bld"
       DOCKER_IMAGE_TAG: "latest"
-      DOCKER_IMAGE_VERSION: "0.0.5"
+      DOCKER_IMAGE_VERSION: "0.0.6"
       DOCKER_IMAGE_PATH: "./images/gha_runner_bld/Dockerfile"
     secrets:
       DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
