@@ -14,9 +14,9 @@ LABEL ANSIBLE_VERSION=${ANSIBLE_PIP_VERSION}
 RUN sudo apt update -y && sudo apt install -y wget unzip lsb-release ca-certificates gnupg software-properties-common 
 
 RUN wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
-	&& sudo unzip vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin/ \
+	&& sudo unzip -o vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin/ \
     && wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
-    && sudo unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin/ 
+    && sudo unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin/ 
 
 RUN sudo apt update -y && sudo apt install -y \
         python3-pip \
