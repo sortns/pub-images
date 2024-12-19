@@ -37,7 +37,7 @@ RUN ansible-galaxy collection install ansible.windows && \
     ansible-galaxy collection install amazon.aws && \
     ansible-galaxy collection install community.aws && \
     ansible-galaxy collection install community.zabbix:==1.8.0 && \
-	ansible-galaxy collection install community.hashi_vault:==5.0.0 && \
+	ansible-galaxy collection install community.hashi_vault:==6.2.0 && \
 	sudo rm -rf /var/lib/apt/lists/* && \
 	sudo rm -rf /root/.cache/pip
 
