@@ -31,7 +31,8 @@ RUN sudo apt update -y && sudo apt install -y \
 RUN sudo pip install ansible==${ANSIBLE_PIP_VERSION}
 
 RUN sudo pip install \
-		hvac==2.3.0
+		hvac==2.3.0 \
+		passlib==1.7.4
 
 RUN ansible-galaxy collection install ansible.windows && \
     ansible-galaxy collection install amazon.aws && \
