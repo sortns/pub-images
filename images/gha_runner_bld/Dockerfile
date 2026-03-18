@@ -2,13 +2,15 @@ FROM ghcr.io/actions/actions-runner:latest
 
 ARG VAULT_VERSION=1.21.3
 ARG TERRAFORM_VERSION=1.14.7
-ARG ANSIBLE_PIP_VERSION=10.4.0
+ARG ANSIBLE_PIP_VERSION=13.4.0
+ARG ANSIBLE_VENV=/opt/ansible-venv
 
 LABEL maintainer="sortns@gmail.com"
 LABEL VAULT_VERSION=${VAULT_VERSION}
 LABEL TERRAFORM_VERSION=${TERRAFORM_VERSION}
 LABEL ANSIBLE_VERSION=${ANSIBLE_PIP_VERSION}
 
+ENV PATH="${ANSIBLE_VENV}/bin:${PATH}"
 
 
 RUN sudo apt update -y && sudo apt install -y wget unzip lsb-release ca-certificates gnupg software-properties-common 
@@ -20,6 +22,7 @@ RUN wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VER
 
 RUN sudo apt update -y && sudo apt install -y \
         python3-pip \
+        python3-venv \
 		git \
 		openssh-client \
 		sshpass \
@@ -28,9 +31,10 @@ RUN sudo apt update -y && sudo apt install -y \
     sudo apt autoremove --yes && \
     sudo rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-RUN sudo pip install ansible==${ANSIBLE_PIP_VERSION}
-
-RUN sudo pip install \
+RUN sudo python3 -m venv ${ANSIBLE_VENV} && \
+    sudo ${ANSIBLE_VENV}/bin/pip install --upgrade pip && \
+    sudo ${ANSIBLE_VENV}/bin/pip install \
+        ansible==${ANSIBLE_PIP_VERSION} \
 		hvac==2.3.0 \
 		passlib==1.7.4
 
