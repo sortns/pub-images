@@ -1,7 +1,7 @@
 FROM ghcr.io/actions/actions-runner:latest
 
-ARG VAULT_VERSION=1.17.5
-ARG TERRAFORM_VERSION=1.9.6
+ARG VAULT_VERSION=v1.21.3
+ARG TERRAFORM_VERSION=1.14.7
 ARG ANSIBLE_PIP_VERSION=10.4.0
 
 LABEL maintainer="sortns@gmail.com"
