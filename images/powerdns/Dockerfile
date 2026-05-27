@@ -39,4 +39,5 @@ VOLUME ["/var/lib/powerdns", "/etc/powerdns"]
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 
+
 CMD ["pdns_server", "--daemon=no"]
