@@ -6,7 +6,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   prepare:
@@ -97,12 +96,24 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.prepare.outputs.images) }}
-    uses: ./.github/workflows/push-image.yml
-    with:
-      DOCKER_IMAGE_NAME: ${{ matrix.name }}
-      DOCKER_IMAGE_TAG: ${{ matrix.tag }}
-      DOCKER_IMAGE_VERSION: ${{ matrix.version }}
-      DOCKER_IMAGE_PATH: ${{ matrix.path }}
-    secrets:
-      DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
-      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build image
+        run: |
+          docker build -f "${{ matrix.path }}" --tag "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.tag }}" --tag "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.version }}" .
+
+      - name: Push image tag
+        run: docker push "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.tag }}"
+
+      - name: Push image version
+        run: docker push "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.version }}"
