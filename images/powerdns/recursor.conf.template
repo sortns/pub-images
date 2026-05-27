@@ -1,0 +1,41 @@
+# PowerDNS Recursor configuration template
+# Rendered via entrypoint using environment variables. Supported variables:
+# PDNS_RECURSOR_LOCAL_ADDRESS, PDNS_RECURSOR_LOCAL_PORT, PDNS_RECURSOR_UPSTREAM_RESOLVERS,
+# PDNS_RECURSOR_WEB_ENABLED, PDNS_RECURSOR_WEB_ADDRESS, PDNS_RECURSOR_WEB_PORT,
+# PDNS_RECURSOR_THREADS, PDNS_RECURSOR_LOG_LEVEL,
+# PDNS_RECURSOR_FORWARD_ZONES_FILE, PDNS_RECURSOR_LUA_CONFIG_FILE,
+# PDNS_RECURSOR_RPZ_ENABLED, PDNS_RECURSOR_RPZ_ZONE_NAME, PDNS_RECURSOR_RPZ_PRIMARY_ADDRESSES
+
+local-address=${PDNS_RECURSOR_LOCAL_ADDRESS:-0.0.0.0}
+local-port=${PDNS_RECURSOR_LOCAL_PORT:-53}
+
+# Upstream resolvers (comma-separated)
+forward-zones-file=${PDNS_RECURSOR_FORWARD_ZONES_FILE:-/etc/powerdns/forward-zones.yml}
+upstream-resolvers=${PDNS_RECURSOR_UPSTREAM_RESOLVERS:-8.8.8.8,77.88.8.8}
+
+# RPZ / response policy
+rpz-enabled=${PDNS_RECURSOR_RPZ_ENABLED:-yes}
+rpz-zone=${PDNS_RECURSOR_RPZ_ZONE_NAME:-rpz}
+rpz-primary-addresses=${PDNS_RECURSOR_RPZ_PRIMARY_ADDRESSES:-127.0.0.1:5300}
+rpz-refresh=${PDNS_RECURSOR_RPZ_REFRESH:-60}
+
+# Cache settings
+serve-expired-ttl=${PDNS_RECURSOR_SERVE_EXPIRED_TTL:-86400}
+max-cache-ttl=${PDNS_RECURSOR_MAX_CACHE_TTL:-300}
+max-negative-ttl=${PDNS_RECURSOR_MAX_NEGATIVE_TTL:-60}
+
+# Threading and logging
+threads=${PDNS_RECURSOR_THREADS:-2}
+loglevel=${PDNS_RECURSOR_LOG_LEVEL:-4}
+
+# Webserver/API (recursor)
+webserver=${PDNS_RECURSOR_WEB_ENABLED:-no}
+webserver-address=${PDNS_RECURSOR_WEB_ADDRESS:-0.0.0.0}
+webserver-port=${PDNS_RECURSOR_WEB_PORT:-8082}
+webserver-allow-from=${PDNS_RECURSOR_WEB_ALLOW_FROM:-127.0.0.1}
+
+# Lua config file (optional)
+lua-config-file=${PDNS_RECURSOR_LUA_CONFIG_FILE:-/etc/powerdns/recursor.lua}
+
+# Additional raw options appended
+${PDNS_RECURSOR_EXTRA_OPTS:-}

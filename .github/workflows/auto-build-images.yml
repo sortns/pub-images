@@ -1,0 +1,108 @@
+name: Auto Build Images
+
+on:
+  push:
+    branches: [ master ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  prepare:
+    name: Prepare image list and bump VERSION
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions'
+    outputs:
+      images: ${{ steps.prep.outputs.images }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Discover changed images and bump VERSION files
+        id: prep
+        env:
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import os, json, subprocess
+
+          images_dir = 'images'
+          before = os.environ.get('BEFORE')
+          sha = os.environ.get('SHA')
+
+          def git_changed_files(b, s):
+              try:
+                  out = subprocess.check_output(['git', 'diff', '--name-only', b, s], text=True)
+                  return out.splitlines()
+              except Exception:
+                  # fallback to last commit
+                  try:
+                      out = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], text=True)
+                      return out.splitlines()
+                  except Exception:
+                      return []
+
+          changed = git_changed_files(before, sha)
+          imgs = {}
+          for p in changed:
+              if not p:
+                  continue
+              parts = p.split('/')
+              if parts[0] == images_dir and len(parts) >= 2:
+                  name = parts[1]
+                  imgs[name] = True
+
+          images = []
+          for name in sorted(imgs.keys()):
+              d = os.path.join(images_dir, name)
+              if os.path.isdir(d) and os.path.exists(os.path.join(d, 'Dockerfile')):
+                  vf = os.path.join(d, 'VERSION')
+                  ver = 0
+                  if os.path.exists(vf):
+                      try:
+                          with open(vf) as f:
+                              ver = int(f.read().strip())
+                      except Exception:
+                          ver = 0
+                  newver = ver + 1
+                  with open(vf, 'w') as f:
+                      f.write(str(newver))
+                  images.append({'name': name, 'path': os.path.join(d, 'Dockerfile'), 'version': str(newver), 'tag': 'v'+str(newver)})
+
+          # write output to GITHUB_OUTPUT
+          out_lines = []
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('images=' + json.dumps(images))
+
+          # commit VERSION changes if any
+          if images:
+              files = ' '.join([os.path.join('images', i['name'], 'VERSION') for i in images])
+              subprocess.call(['git', 'add'] + [os.path.join('images', i['name'], 'VERSION') for i in images])
+              subprocess.call(['git', 'commit', '-m', 'ci: bump image versions [skip ci]'])
+              subprocess.call(['git', 'push', 'origin', 'HEAD:master'])
+          else:
+              print('No image folders changed; nothing to do')
+          PY
+
+  build-images:
+    name: Build and push images (Docker Hub)
+    needs: prepare
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.images) }}
+    uses: ./.github/workflows/push-image.yml
+    with:
+      DOCKER_IMAGE_NAME: ${{ matrix.name }}
+      DOCKER_IMAGE_TAG: ${{ matrix.tag }}
+      DOCKER_IMAGE_VERSION: ${{ matrix.version }}
+      DOCKER_IMAGE_PATH: ${{ matrix.path }}
+    secrets:
+      DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}

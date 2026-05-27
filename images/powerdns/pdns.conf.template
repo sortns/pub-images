@@ -1,0 +1,50 @@
+# PowerDNS Authoritative Server configuration template
+# Rendered via entrypoint using environment variables. Supported variables:
+# PDNS_LAUNCH, PDNS_API, PDNS_API_KEY, PDNS_GPGSQL_HOST, PDNS_GPGSQL_PORT,
+# PDNS_GPGSQL_USER, PDNS_GPGSQL_PASSWORD, PDNS_GPGSQL_DBNAME,
+# PDNS_ALLOW_AXFR_IPS, PDNS_LOCAL_ADDRESS, PDNS_LOGLEVEL,
+# PDNS_WEBSERVER, PDNS_WEBSERVER_ADDRESS, PDNS_WEBSERVER_PORT
+
+
+launch=${PDNS_LAUNCH:-gpgsql}
+
+# API
+api=${PDNS_API:-yes}
+api-key=${PDNS_API_KEY:-}
+api-allow-from=${PDNS_API_ALLOW_FROM:-127.0.0.1}
+
+# Logging
+loglevel=${PDNS_LOGLEVEL:-${PDNS_LOG_LEVEL:-notice}}
+log-dns-queries=${PDNS_LOG_DNS_QUERIES:-no}
+
+# Web server (API)
+webserver=${PDNS_WEBSERVER:-yes}
+webserver-address=${PDNS_WEBSERVER_ADDRESS:-0.0.0.0}
+webserver-port=${PDNS_WEBSERVER_PORT:-8081}
+
+# Local listen address and port
+local-address=${PDNS_LOCAL_ADDRESS:-0.0.0.0}
+local-port=${PDNS_LOCAL_PORT:-53}
+
+# AXFR and notify
+allow-axfr-ips=${PDNS_ALLOW_AXFR_IPS:-127.0.0.1}
+allow-notify-from=${PDNS_ALLOW_NOTIFY_FROM:-}
+
+# Cache and query settings
+cache-ttl=${PDNS_CACHE_TTL:-60}
+negquery-cache-ttl=${PDNS_NEGQUERY_CACHE_TTL:-60}
+query-cache-ttl=${PDNS_QUERY_CACHE_TTL:-20}
+
+# PostgreSQL backend settings (gpgsql)
+gpgsql-host=${PDNS_GPGSQL_HOST:-db}
+gpgsql-port=${PDNS_GPGSQL_PORT:-5432}
+gpgsql-user=${PDNS_GPGSQL_USER:-pdns}
+gpgsql-password=${PDNS_GPGSQL_PASSWORD:-pdns}
+gpgsql-dbname=${PDNS_GPGSQL_DBNAME:-pdns}
+gpgsql-prepared-statements=${PDNS_GPGSQL_PREPARED_STATEMENTS:-no}
+
+# Other
+local-address=${PDNS_LOCAL_ADDRESS:-0.0.0.0}
+
+# Additional options can be supplied via PDNS_EXTRA_OPTS (raw text appended)
+${PDNS_EXTRA_OPTS:-}
