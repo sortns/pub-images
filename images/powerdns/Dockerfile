@@ -1,8 +1,11 @@
 FROM debian:bookworm-slim
 
-ARG PDNS_RELEASE=auth-4.8
+ARG PDNS_AUTH_RELEASE=auth-4.8
+ARG PDNS_REC_RELEASE=rec-51
+
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Base system packages
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -12,30 +15,56 @@ RUN apt-get update \
     gettext-base \
     procps \
     iproute2 \
-    netcat \
+    netcat-openbsd \
     dnsutils \
     vim-tiny \
+    python3 \
     supervisor \
  && rm -rf /var/lib/apt/lists/*
 
-# Add official PowerDNS APT repository (authoritative server)
+# PowerDNS repositories — auth-4.8 and rec-51 pinned to PowerDNS repo
 RUN set -eux; \
     CODENAME=$(lsb_release -cs); \
-    curl -fsSL https://repo.powerdns.com/FD380FBB-pub.asc | gpg --dearmor -o /usr/share/keyrings/powerdns-archive-keyring.gpg; \
-    echo "deb [signed-by=/usr/share/keyrings/powerdns-archive-keyring.gpg] http://repo.powerdns.com/debian ${CODENAME}-${PDNS_RELEASE} main" \
-      > /etc/apt/sources.list.d/powerdns.list; \
+    curl -fsSL https://repo.powerdns.com/FD380FBB-pub.asc \
+      | gpg --dearmor -o /usr/share/keyrings/powerdns-archive-keyring.gpg; \
+    echo "deb [signed-by=/usr/share/keyrings/powerdns-archive-keyring.gpg] \
+      http://repo.powerdns.com/debian ${CODENAME}-${PDNS_AUTH_RELEASE} main" \
+      > /etc/apt/sources.list.d/pdns-auth.list; \
+    echo "deb [signed-by=/usr/share/keyrings/powerdns-archive-keyring.gpg] \
+      http://repo.powerdns.com/debian ${CODENAME}-${PDNS_REC_RELEASE} main" \
+      > /etc/apt/sources.list.d/pdns-recursor.list; \
+    printf 'Package: pdns-server pdns-backend-pgsql pdns-recursor\nPin: origin repo.powerdns.com\nPin-Priority: 600\n' \
+      > /etc/apt/preferences.d/pdns; \
     apt-get update; \
-    apt-get install -y --no-install-recommends pdns-server pdns-backend-pgsql pdns-recursor; \
+    apt-get install -y --no-install-recommends \
+      pdns-server \
+      pdns-backend-pgsql \
+      pdns-recursor; \
     rm -rf /var/lib/apt/lists/*
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY pdns.conf.template /etc/powerdns/pdns.conf.template
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh                  /usr/local/bin/entrypoint.sh
+COPY pdns.conf.template             /etc/powerdns/pdns.conf.template
+COPY recursor.conf.template         /etc/powerdns/recursor.conf.template
+COPY recursor.lua.template          /etc/powerdns/recursor.lua.template
+COPY supervisord.conf               /etc/supervisor/supervisord.conf
+COPY pdns_sync_forward_zones.py     /usr/local/sbin/pdns-sync-forward-zones
+COPY pdns-sync-forward-zones-loop.sh /usr/local/sbin/pdns-sync-forward-zones-loop
+COPY sync-forward-zones.env.template /etc/pdns/pdns-sync-forward-zones.env.template
 
-EXPOSE 53/udp 53/tcp 8081
+RUN chmod +x \
+      /usr/local/bin/entrypoint.sh \
+      /usr/local/sbin/pdns-sync-forward-zones \
+      /usr/local/sbin/pdns-sync-forward-zones-loop
+
+# 53   — DNS (recursor, user-facing)
+# 8081 — pdns-server (auth) API/webserver
+# 8082 — pdns-recursor API/webserver
+# Port 5300 (auth internal) is NOT exposed — reachable only within the container by the recursor.
+EXPOSE 53/udp 53/tcp 8081 8082
 
 VOLUME ["/var/lib/powerdns", "/etc/powerdns"]
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-CMD ["pdns_server", "--daemon=no"]
+# supervisord manages pdns_server (auth), pdns_recursor, and the zone-sync loop.
+CMD ["supervisord", "-n"]

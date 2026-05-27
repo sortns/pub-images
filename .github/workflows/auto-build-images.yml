@@ -60,26 +60,26 @@ jobs:
               d = os.path.join(images_dir, name)
               if os.path.isdir(d) and os.path.exists(os.path.join(d, 'Dockerfile')):
                   vf = os.path.join(d, 'VERSION')
-                  ver = 0
+                  major, minor, patch = 0, 0, 0
                   if os.path.exists(vf):
                       try:
                           with open(vf) as f:
-                              ver = int(f.read().strip())
+                              parts = f.read().strip().split('.')
+                          major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2])
                       except Exception:
-                          ver = 0
-                  newver = ver + 1
+                          major, minor, patch = 0, 0, 0
+                  patch += 1
+                  newver = f'{major}.{minor}.{patch}'
                   with open(vf, 'w') as f:
-                      f.write(str(newver))
-                  images.append({'name': name, 'path': os.path.join(d, 'Dockerfile'), 'version': str(newver), 'tag': 'v'+str(newver)})
+                      f.write(newver)
+                  images.append({'name': name, 'dir': d, 'version': newver})
 
           # write output to GITHUB_OUTPUT
-          out_lines = []
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
               out.write('images=' + json.dumps(images))
 
           # commit VERSION changes if any
           if images:
-              files = ' '.join([os.path.join('images', i['name'], 'VERSION') for i in images])
               subprocess.call(['git', 'add'] + [os.path.join('images', i['name'], 'VERSION') for i in images])
               subprocess.call(['git', 'commit', '-m', 'ci: bump image versions [skip ci]'])
               subprocess.call(['git', 'push', 'origin', 'HEAD:master'])
@@ -127,10 +127,9 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -f "${{ matrix.path }}" --tag "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.tag }}" --tag "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.version }}" .
+          docker build "${{ matrix.dir }}" \
+            --tag "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.version }}" \
+            --tag "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:latest"
 
-      - name: Push image tag
-        run: docker push "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.tag }}"
-
-      - name: Push image version
-        run: docker push "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}:${{ matrix.version }}"
+      - name: Push image
+        run: docker push --all-tags "${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}"
