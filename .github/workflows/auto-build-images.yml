@@ -102,11 +102,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Login to Docker Hub
+      - name: Validate Docker Hub secrets and set token
         run: |
-          if [ -z "${{ secrets.DOCKER_HUB_USER }}" ] || [ -z "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" ]; then
-            echo "ERROR: Docker Hub secrets DOCKER_HUB_USER or DOCKER_HUB_ACCESS_TOKEN are not set or empty."
-            echo "Please add them to repository Secrets (Settings → Secrets and variables → Actions)."
+          # Accept either DOCKER_HUB_ACCESS_TOKEN (new) or DOCKER_HUB_TOKEN (existing)
+          if [ -z "${{ secrets.DOCKER_HUB_USER }}" ]; then
+            echo "ERROR: Docker Hub secret DOCKER_HUB_USER is not set or empty."
+            exit 1
+          fi
+          if [ -n "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" ]; then
+            echo "DOCKER_HUB_TOKEN_USED=${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          elif [ -n "${{ secrets.DOCKER_HUB_TOKEN }}" ]; then
+            echo "DOCKER_HUB_TOKEN_USED=${{ secrets.DOCKER_HUB_TOKEN }}" >> $GITHUB_ENV
+          else
+            echo "ERROR: Neither DOCKER_HUB_ACCESS_TOKEN nor DOCKER_HUB_TOKEN is set. Please add one to repository Secrets."
             exit 1
           fi
         shell: bash
@@ -115,7 +123,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          password: ${{ env.DOCKER_HUB_TOKEN_USED }}
 
       - name: Build image
         run: |
