@@ -91,7 +91,7 @@ jobs:
     name: Build and push images (Docker Hub)
     needs: prepare
     runs-on: ubuntu-latest
-    if: github.actor != 'github-actions'
+    if: ${{ github.actor != 'github-actions' && needs.prepare.outputs.images != '[]' && needs.prepare.outputs.images != '' }}
     strategy:
       fail-fast: false
       matrix:
