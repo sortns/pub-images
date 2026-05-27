@@ -20,6 +20,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure git identity
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "github-actions"
+
       - name: Discover changed images and bump VERSION files
         id: prep
         env:
@@ -27,7 +32,7 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           python3 - <<'PY'
-          import os, json, subprocess
+          import os, json, subprocess, sys
 
           images_dir = 'images'
           before = os.environ.get('BEFORE')
@@ -80,9 +85,10 @@ jobs:
 
           # commit VERSION changes if any
           if images:
-              subprocess.call(['git', 'add'] + [os.path.join('images', i['name'], 'VERSION') for i in images])
-              subprocess.call(['git', 'commit', '-m', 'ci: bump image versions [skip ci]'])
-              subprocess.call(['git', 'push', 'origin', 'HEAD:master'])
+              version_files = [os.path.join('images', i['name'], 'VERSION') for i in images]
+              subprocess.check_call(['git', 'add'] + version_files)
+              subprocess.check_call(['git', 'commit', '-m', 'ci: bump image versions [skip ci]'])
+              subprocess.check_call(['git', 'push', 'origin', 'HEAD:master'])
           else:
               print('No image folders changed; nothing to do')
           PY
@@ -104,9 +110,8 @@ jobs:
 
       - name: Validate Docker Hub secrets and set token
         run: |
-          # Accept either DOCKER_HUB_ACCESS_TOKEN (new) or DOCKER_HUB_TOKEN (existing)
           if [ -z "${{ secrets.DOCKER_HUB_USER }}" ]; then
-            echo "ERROR: Docker Hub secret DOCKER_HUB_USER is not set or empty."
+            echo "ERROR: DOCKER_HUB_USER secret is not set."
             exit 1
           fi
           if [ -n "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" ]; then
@@ -114,7 +119,7 @@ jobs:
           elif [ -n "${{ secrets.DOCKER_HUB_TOKEN }}" ]; then
             echo "DOCKER_HUB_TOKEN_USED=${{ secrets.DOCKER_HUB_TOKEN }}" >> $GITHUB_ENV
           else
-            echo "ERROR: Neither DOCKER_HUB_ACCESS_TOKEN nor DOCKER_HUB_TOKEN is set. Please add one to repository Secrets."
+            echo "ERROR: Neither DOCKER_HUB_ACCESS_TOKEN nor DOCKER_HUB_TOKEN is set."
             exit 1
           fi
         shell: bash
@@ -139,7 +144,7 @@ jobs:
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
-          password: ${{ env.DOCKER_HUB_TOKEN_USED }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           repository: ${{ secrets.DOCKER_HUB_USER }}/${{ matrix.name }}
           readme-filepath: ${{ matrix.dir }}/README.md
           short-description: ${{ github.event.repository.description }}

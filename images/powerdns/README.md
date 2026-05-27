@@ -65,6 +65,7 @@ Port **5300** (auth internal) is not exposed — it is only reachable by the rec
 | `PDNS_LOGLEVEL` | `4` | Log level |
 | `PDNS_CACHE_TTL` | `60` | Cache TTL (s) |
 
+
 ### Recursor (pdns-recursor)
 
 | Variable | Default | Description |
