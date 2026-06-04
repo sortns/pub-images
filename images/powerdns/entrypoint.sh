@@ -62,6 +62,7 @@ export PDNS_SYNC_INTERVAL="${PDNS_SYNC_INTERVAL:-300}"
 # ── Create runtime directories ────────────────────────────────────────────────
 mkdir -p /var/lib/powerdns \
          /var/lib/pdns-recursor \
+         /var/run/pdns-recursor \
          /etc/powerdns/pdns.d \
          /etc/pdns
 
