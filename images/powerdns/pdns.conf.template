@@ -26,6 +26,7 @@ webserver=yes
 webserver-address=$PDNS_WEBSERVER_ADDRESS
 webserver-port=$PDNS_WEBSERVER_PORT
 webserver-allow-from=$PDNS_WEBSERVER_ALLOW_FROM
+webserver-password=$PDNS_WEBSERVER_PASSWORD
 webserver-max-bodysize=8
 api=yes
 api-key=$PDNS_API_KEY

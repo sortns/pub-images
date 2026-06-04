@@ -25,6 +25,7 @@ forward-zone and NTA includes so the recursor can start before the first sync co
 ```bash
 docker run -d \
   -e PDNS_API_KEY=changeme \
+  -e PDNS_WEBSERVER_ALLOW_FROM=10.10.0.0/16 \
   -e PDNS_GPGSQL_HOST=pg.example.local \
   -e PDNS_GPGSQL_USER=pdns \
   -e PDNS_GPGSQL_PASSWORD=secret \
@@ -33,6 +34,9 @@ docker run -d \
   -p 8081:8081 \
   sortns/powerdns:latest
 ```
+
+For remote access to the authoritative API or metrics, set `PDNS_WEBSERVER_ALLOW_FROM`
+to your management subnet or specific IPs. By default it only allows `127.0.0.1,::1`.
 
 The target PostgreSQL database must already contain the PowerDNS authoritative schema.
 If tables like `domains` and `records` do not exist, `pdns_server` will exit with
@@ -85,7 +89,8 @@ Port **5300** (auth internal) is not exposed — it is only reachable by the rec
 | `PDNS_GPGSQL_DBNAME` | `pdns` | PostgreSQL database |
 | `PDNS_GPGSQL_PREPARED_STATEMENTS` | `no` | Enable prepared statements |
 | `PDNS_WEBSERVER_PORT` | `8081` | Auth API/webserver port |
-| `PDNS_WEBSERVER_ALLOW_FROM` | `127.0.0.1` | Auth API access CIDR |
+| `PDNS_WEBSERVER_ALLOW_FROM` | `127.0.0.1,::1` | Auth API access CIDRs |
+| `PDNS_WEBSERVER_PASSWORD` | _(empty)_ | Optional auth web UI / metrics password |
 | `PDNS_ALLOW_AXFR_IPS` | `127.0.0.1` | AXFR allowed IPs |
 | `PDNS_ALLOW_NOTIFY_FROM` | _(empty)_ | Notify allowed IPs |
 | `PDNS_LOGLEVEL` | `4` | Log level |
@@ -106,7 +111,30 @@ Port **5300** (auth internal) is not exposed — it is only reachable by the rec
 | `PDNS_RECURSOR_LOG_LEVEL` | `4` | Log level |
 | `PDNS_RECURSOR_WEBSERVER_ENABLED` | `false` | Enable recursor API |
 | `PDNS_RECURSOR_WEBSERVER_PORT` | `8082` | Recursor API port |
+| `PDNS_RECURSOR_WEBSERVER_PASSWORD` | _(empty)_ | Optional recursor web UI / metrics password |
 | `PDNS_RECURSOR_API_KEY` | _(empty)_ | Recursor API key |
+
+### HTTP API and metrics
+
+Authoritative server:
+
+- API base URL: `http://HOST:8081/api/v1`
+- Example: `curl -H 'X-API-Key: changeme' http://HOST:8081/api/v1/servers/localhost`
+- Statistics JSON: `curl -H 'X-API-Key: changeme' http://HOST:8081/api/v1/servers/localhost/statistics`
+- Prometheus metrics: `curl http://HOST:8081/metrics`
+
+Recursor:
+
+- Disabled by default. Enable with `PDNS_RECURSOR_WEBSERVER_ENABLED=true` and publish `-p 8082:8082`.
+- API base URL: `http://HOST:8082/api/v1`
+- Example: `curl -H 'X-API-Key: recursor-secret' http://HOST:8082/api/v1/servers/localhost`
+- Statistics JSON: `curl -H 'X-API-Key: recursor-secret' http://HOST:8082/api/v1/servers/localhost/statistics`
+- Prometheus metrics: `curl http://HOST:8082/metrics`
+
+Notes:
+
+- `curl localhost:8081` inside the container may hit `::1` first. The auth webserver listens on IPv4 by default, so use `curl 127.0.0.1:8081/metrics` or enable IPv6 binding explicitly.
+- A plain request to `/` is not the JSON API. Use `/api/v1/...` for API calls.
 
 ### RPZ (database-backed, no local files)
 
