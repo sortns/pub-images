@@ -65,6 +65,12 @@ mkdir -p /var/lib/powerdns \
          /etc/powerdns/pdns.d \
          /etc/pdns
 
+# Recursor exits hard if its generated include files are missing at boot.
+# Seed empty placeholders so the first sync can happen after both daemons start.
+: > "$PDNS_RECURSOR_FORWARD_ZONES_FILE"
+: > "$PDNS_RECURSOR_NTA_LUA_FILE"
+chmod 0640 "$PDNS_RECURSOR_FORWARD_ZONES_FILE" "$PDNS_RECURSOR_NTA_LUA_FILE"
+
 # ── Render configs from templates ─────────────────────────────────────────────
 envsubst < /etc/powerdns/pdns.conf.template               > /etc/powerdns/pdns.conf
 envsubst < /etc/powerdns/recursor.conf.template           > /etc/powerdns/recursor.conf

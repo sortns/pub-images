@@ -15,6 +15,9 @@ Forward zones and NTAs are pulled automatically from the auth API every 5 minute
 `pdns_sync_forward_zones`. RPZ is served directly from the auth server database via
 `rpzPrimary()` — no local zone files needed.
 
+On first boot, the image creates empty placeholder files for the generated recursor
+forward-zone and NTA includes so the recursor can start before the first sync completes.
+
 ---
 
 ## Quick start
@@ -30,6 +33,29 @@ docker run -d \
   -p 8081:8081 \
   sortns/powerdns:latest
 ```
+
+The target PostgreSQL database must already contain the PowerDNS authoritative schema.
+If tables like `domains` and `records` do not exist, `pdns_server` will exit with
+`ERROR: relation "domains" does not exist`.
+For reference: https://doc.powerdns.com/authoritative/backends/generic-postgresql.html#default-schema 
+
+The PostgreSQL role from `PDNS_GPGSQL_USER` must also own the schema objects or have
+permissions on them. If the schema was loaded by another role, `pdns_server` can fail with
+`ERROR: permission denied for table domains`.
+Example fix:
+
+```sql
+GRANT USAGE ON SCHEMA public TO pdns;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO pdns;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO pdns;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO pdns;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO pdns;
+```
+
+If you want `pdns` to fully own the imported schema instead of using grants, change the
+owner of the imported tables and sequences to `pdns`.
 
 ## Ports
 

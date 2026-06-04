@@ -65,4 +65,4 @@ VOLUME ["/var/lib/powerdns", "/etc/powerdns"]
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # supervisord manages pdns_server (auth), pdns_recursor, and the zone-sync loop.
-CMD ["supervisord", "-n"]
+CMD ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
