@@ -41,6 +41,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh                  /usr/local/bin/entrypoint.sh
+COPY supervisor_tee.py             /usr/local/bin/supervisor_tee.py
 COPY pdns.conf.template             /etc/powerdns/pdns.conf.template
 COPY recursor.conf.template         /etc/powerdns/recursor.conf.template
 COPY recursor.lua.template          /etc/powerdns/recursor.lua.template
@@ -51,6 +52,7 @@ COPY sync-forward-zones.env.template /etc/pdns/pdns-sync-forward-zones.env.templ
 
 RUN chmod +x \
       /usr/local/bin/entrypoint.sh \
+      /usr/local/bin/supervisor_tee.py \
       /usr/local/sbin/pdns-sync-forward-zones \
       /usr/local/sbin/pdns-sync-forward-zones-loop
 

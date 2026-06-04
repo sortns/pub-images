@@ -152,6 +152,39 @@ Notes:
 | `PDNS_SYNC_SERVER_ID` | `localhost` | Auth server ID |
 | `PDNS_SYNC_INTERVAL` | `300` | Sync interval (s) |
 
+### Logging
+
+By default, all supervised program output goes only to container stdout/stderr, so:
+
+- `docker logs -f CONTAINER` works
+- `supervisorctl tail ...` does not
+
+If you want both container logs and per-program files for `supervisorctl tail`, enable:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PDNS_SUPERVISOR_FILE_LOGGING` | `false` | Duplicate program output into supervisor-readable log files |
+| `PDNS_SUPERVISOR_LOG_DIR` | `/var/log/supervisor` | Directory for supervisor log files |
+
+Example:
+
+```bash
+docker run -d \
+  -e PDNS_SUPERVISOR_FILE_LOGGING=true \
+  sortns/powerdns:latest
+```
+
+Then inside the container:
+
+```bash
+supervisorctl tail -100 pdns-authoritative
+supervisorctl tail -100 pdns-recursor
+ls /var/log/supervisor/
+```
+
+When `PDNS_SUPERVISOR_FILE_LOGGING=false`, `docker logs` still shows all program output,
+but the per-program files remain empty and `supervisorctl tail` will not be useful.
+
 ---
 
 ## Source

@@ -60,11 +60,20 @@ export PDNS_SYNC_API_URL="${PDNS_SYNC_API_URL:-http://${PDNS_AUTH_LOCAL_ADDRESS}
 export PDNS_SYNC_SERVER_ID="${PDNS_SYNC_SERVER_ID:-localhost}"
 export PDNS_SYNC_STATE_FILE="${PDNS_SYNC_STATE_FILE:-/var/lib/pdns-recursor/forward-zones.last.yml}"
 export PDNS_SYNC_INTERVAL="${PDNS_SYNC_INTERVAL:-300}"
+export PDNS_SUPERVISOR_FILE_LOGGING="${PDNS_SUPERVISOR_FILE_LOGGING:-false}"
+export PDNS_SUPERVISOR_LOG_DIR="${PDNS_SUPERVISOR_LOG_DIR:-/var/log/supervisor}"
 
 # ── Create runtime directories ────────────────────────────────────────────────
+if [ "$PDNS_SUPERVISOR_LOG_DIR" != "/var/log/supervisor" ]; then
+  mkdir -p "$PDNS_SUPERVISOR_LOG_DIR"
+  rm -rf /var/log/supervisor
+  ln -s "$PDNS_SUPERVISOR_LOG_DIR" /var/log/supervisor
+fi
+
 mkdir -p /var/lib/powerdns \
          /var/lib/pdns-recursor \
          /var/run/pdns-recursor \
+         "$PDNS_SUPERVISOR_LOG_DIR" \
          /etc/powerdns/pdns.d \
          /etc/pdns
 
