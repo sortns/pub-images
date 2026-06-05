@@ -60,8 +60,41 @@ export PDNS_SYNC_API_URL="${PDNS_SYNC_API_URL:-http://${PDNS_AUTH_LOCAL_ADDRESS}
 export PDNS_SYNC_SERVER_ID="${PDNS_SYNC_SERVER_ID:-localhost}"
 export PDNS_SYNC_STATE_FILE="${PDNS_SYNC_STATE_FILE:-/var/lib/pdns-recursor/forward-zones.last.yml}"
 export PDNS_SYNC_INTERVAL="${PDNS_SYNC_INTERVAL:-300}"
+export PDNS_SYNC_EXCLUDE_ZONES="${PDNS_SYNC_EXCLUDE_ZONES:-rpz}"
+export PDNS_SYNC_EXCLUDE_ZONE_PREFIXES="${PDNS_SYNC_EXCLUDE_ZONE_PREFIXES:-rpz.}"
 export PDNS_SUPERVISOR_FILE_LOGGING="${PDNS_SUPERVISOR_FILE_LOGGING:-false}"
 export PDNS_SUPERVISOR_LOG_DIR="${PDNS_SUPERVISOR_LOG_DIR:-/var/log/supervisor}"
+
+build_rpz_lua() {
+  zones_csv=$1
+  primary=$2
+  refresh=$3
+  first=1
+
+  printf '%s' "$zones_csv" | tr ',' '\n' | while IFS= read -r raw_zone; do
+    zone=$(printf '%s' "$raw_zone" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    if [ -z "$zone" ]; then
+      continue
+    fi
+    if [ $first -eq 0 ]; then
+      printf '\n'
+    fi
+    first=0
+    cat <<EOF
+rpzPrimary(
+  {"$primary"},
+  "$zone",
+  {refresh=$refresh}
+)
+EOF
+  done
+}
+
+PDNS_RECURSOR_RPZ_LUA=$(build_rpz_lua \
+  "$PDNS_RECURSOR_RPZ_ZONE_NAME" \
+  "$PDNS_RECURSOR_RPZ_PRIMARY" \
+  "$PDNS_RECURSOR_RPZ_REFRESH")
+export PDNS_RECURSOR_RPZ_LUA
 
 # ── Create runtime directories ────────────────────────────────────────────────
 if [ "$PDNS_SUPERVISOR_LOG_DIR" != "/var/log/supervisor" ]; then

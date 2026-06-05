@@ -13,7 +13,7 @@ clients → recursor :53  →  (internal zones) → auth :5300 (PostgreSQL backe
 
 Forward zones and NTAs are pulled automatically from the auth API every 5 minutes by
 `pdns_sync_forward_zones`. RPZ is served directly from the auth server database via
-`rpzPrimary()` — no local zone files needed.
+ordered `rpzPrimary()` definitions — no local zone files needed.
 
 On first boot, the image creates empty placeholder files for the generated recursor
 forward-zone and NTA includes so the recursor can start before the first sync completes.
@@ -141,8 +141,20 @@ Notes:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PDNS_RECURSOR_RPZ_PRIMARY` | `127.0.0.1:5300` | Auth server serving RPZ zone |
-| `PDNS_RECURSOR_RPZ_ZONE_NAME` | `rpz` | RPZ zone name |
+| `PDNS_RECURSOR_RPZ_ZONE_NAME` | `rpz` | RPZ zone name or comma-separated RPZ zones loaded in order, for example `rpz.hm,rpz` |
 | `PDNS_RECURSOR_RPZ_REFRESH` | `60` | RPZ refresh interval (s) |
+
+If multiple RPZ zones are configured, the recursor evaluates them in the order listed.
+That lets you keep a global fallback zone like `rpz` and place office-specific overlays
+first, for example:
+
+```bash
+-e PDNS_RECURSOR_RPZ_ZONE_NAME=rpz.hm,rpz
+```
+
+In that example, policy hits from `rpz.hm` override the fallback `rpz` zone on that
+recursor instance. Another office can use `rpz.zh,rpz` against the same authoritative
+database.
 
 ### Zone sync (auth API → recursor forward-zones)
 
@@ -151,6 +163,13 @@ Notes:
 | `PDNS_SYNC_API_URL` | `http://127.0.0.1:8081/api/v1` | Auth server API URL |
 | `PDNS_SYNC_SERVER_ID` | `localhost` | Auth server ID |
 | `PDNS_SYNC_INTERVAL` | `300` | Sync interval (s) |
+| `PDNS_SYNC_EXCLUDE_ZONES` | `rpz` | Exact zone names excluded from forward-zone and NTA sync |
+| `PDNS_SYNC_EXCLUDE_ZONE_PREFIXES` | `rpz.` | Zone-name prefixes excluded from forward-zone and NTA sync |
+
+The sync job automatically excludes RPZ zones from `forward-zones.yml` and the generated
+NTA file. Exact zone matches come from `PDNS_SYNC_EXCLUDE_ZONES` and prefix matches come
+from `PDNS_SYNC_EXCLUDE_ZONE_PREFIXES`. The defaults exclude both `rpz` and office-specific
+overlays like `rpz.hm` or `rpz.zh`.
 
 ### Logging
 

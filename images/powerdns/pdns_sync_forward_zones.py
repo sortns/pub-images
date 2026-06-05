@@ -65,6 +65,24 @@ def normalize_zone(name):
     return name.rstrip(".")
 
 
+def normalize_prefix(name):
+    return name.strip()
+
+
+def parse_csv_set(raw_value):
+    return {
+        item.strip()
+        for item in raw_value.split(",")
+        if item.strip()
+    }
+
+
+def is_excluded_zone(zone_name, excluded, excluded_prefixes):
+    if zone_name in excluded:
+        return True
+    return any(zone_name.startswith(prefix) for prefix in excluded_prefixes)
+
+
 def render_forward_zones_yaml(zones, forwarder):
     lines = []
     for zone in zones:
@@ -145,9 +163,12 @@ def main() -> int:
     nta_lua_file = Path(env["PDNS_SYNC_NTA_LUA_FILE"])
     state_file = Path(env["PDNS_SYNC_STATE_FILE"])
     excluded = {
-        normalize_zone(item.strip())
-        for item in env.get("PDNS_SYNC_EXCLUDE_ZONES", "").split(",")
-        if item.strip()
+        normalize_zone(item)
+        for item in parse_csv_set(env.get("PDNS_SYNC_EXCLUDE_ZONES", ""))
+    }
+    excluded_prefixes = {
+        normalize_prefix(item)
+        for item in parse_csv_set(env.get("PDNS_SYNC_EXCLUDE_ZONE_PREFIXES", ""))
     }
     file_owner = env.get("PDNS_SYNC_FILE_OWNER", "")
     file_group = env.get("PDNS_SYNC_FILE_GROUP", "")
@@ -165,7 +186,7 @@ def main() -> int:
     for zone in zones_payload:
         zone_name = normalize_zone(zone["name"])
         kind = zone.get("kind", "")
-        if zone_name in excluded:
+        if is_excluded_zone(zone_name, excluded, excluded_prefixes):
             continue
         if kind not in {"Native", "Primary", "Master"}:
             continue
